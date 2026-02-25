@@ -1,7 +1,8 @@
 <template>
   <header class="header">
     <div class="container">
-      <div class="logo">ArzumBeauty</div>
+      <RouterLink to="/" class="logo">ArzumBeauty</RouterLink>
+
       <nav>
         <RouterLink to="/">Ana Sayfa</RouterLink>
         <RouterLink to="/products">Ürünler</RouterLink>
@@ -11,3 +12,7 @@
     </div>
   </header>
 </template>
+
+<script setup>
+import { RouterLink } from 'vue-router'
+</script>
