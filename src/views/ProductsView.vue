@@ -4,7 +4,11 @@
       <h2>Tüm Ürünler</h2>
 
       <div class="filters">
-        <input v-model="search" placeholder="Ürün ara..." class="input" />
+        <input
+          v-model="search"
+          placeholder="Ürün ara..."
+          class="input"
+        />
 
         <select v-model="sort" class="select">
           <option value="default">Sırala</option>
@@ -19,7 +23,7 @@
         v-for="product in visibleProducts"
         :key="product.id"
         :product="product"
-        @add-to-cart="addToCart"
+        @add-to-cart="handleAddToCart"
       />
     </div>
 
@@ -30,11 +34,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
+import { useCartStore } from '../stores/cartStore'
 
-const search = ref('')
+const route = useRoute()
+
+const search = ref(route.query.search ? String(route.query.search) : '')
 const sort = ref('default')
+
+const { addToCart, loadCart, state } = useCartStore()
 
 const products = [
   {
@@ -57,8 +67,15 @@ const products = [
   }
 ]
 
+watch(
+  () => route.query.search,
+  (newValue) => {
+    search.value = newValue ? String(newValue) : ''
+  }
+)
+
 const filteredProducts = computed(() => {
-  return products.filter(product =>
+  return products.filter((product) =>
     product.title.toLowerCase().includes(search.value.toLowerCase())
   )
 })
@@ -77,7 +94,14 @@ const visibleProducts = computed(() => {
   return list
 })
 
-function addToCart(product) {
+async function handleAddToCart(product) {
+  await addToCart(product)
   alert(`${product.title} sepete eklendi ✅`)
 }
+
+onMounted(async () => {
+  if (!state.initialized) {
+    await loadCart()
+  }
+})
 </script>
