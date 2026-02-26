@@ -55,4 +55,4 @@ function wait(ms = 500) {
       },
       token: 'demo-signup-token'
     }
-  }ser
+  }
