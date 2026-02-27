@@ -125,7 +125,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cartStore'
 import logo from '../assets/logo.webp'
-
+import AuthView from '../views/AuthView.vue'
 const router = useRouter()
 const searchText = ref('')
 const isCartOpen = ref(false)
@@ -151,7 +151,10 @@ function goToSearch() {
 }
 
 function handleLogin() {
-  router.push('/auth')
+  router.push({
+    path: '/auth',
+    query: { tab: 'login' }
+  })
 }
 
 function handleFavorites() {

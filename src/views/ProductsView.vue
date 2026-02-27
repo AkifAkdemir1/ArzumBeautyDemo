@@ -18,7 +18,15 @@
       </div>
     </div>
 
-    <div class="grid">
+    <div v-if="loading" class="empty">
+      Ürünler yükleniyor...
+    </div>
+
+    <div v-else-if="error" class="empty">
+      {{ error }}
+    </div>
+
+    <div v-else class="grid">
       <ProductCard
         v-for="product in visibleProducts"
         :key="product.id"
@@ -27,7 +35,7 @@
       />
     </div>
 
-    <div v-if="visibleProducts.length === 0" class="empty">
+    <div v-if="!loading && !error && visibleProducts.length === 0" class="empty">
       Ürün bulunamadı.
     </div>
   </section>
@@ -38,34 +46,18 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
 import { useCartStore } from '../stores/cartStore'
+import { fetchProducts } from '../services/productService'
 
 const route = useRoute()
 
 const search = ref(route.query.search ? String(route.query.search) : '')
 const sort = ref('default')
 
-const { addToCart, loadCart, state } = useCartStore()
+const products = ref([])
+const loading = ref(false)
+const error = ref('')
 
-const products = [
-  {
-    id: 1,
-    title: 'Mat Ruj',
-    price: 25,
-    image: 'https://via.placeholder.com/300'
-  },
-  {
-    id: 2,
-    title: 'Fondöten',
-    price: 40,
-    image: 'https://via.placeholder.com/300'
-  },
-  {
-    id: 3,
-    title: 'Allık',
-    price: 35,
-    image: 'https://via.placeholder.com/300'
-  }
-]
+const { addToCart, loadCart, state } = useCartStore()
 
 watch(
   () => route.query.search,
@@ -75,7 +67,7 @@ watch(
 )
 
 const filteredProducts = computed(() => {
-  return products.filter((product) =>
+  return products.value.filter((product) =>
     product.title.toLowerCase().includes(search.value.toLowerCase())
   )
 })
@@ -96,12 +88,22 @@ const visibleProducts = computed(() => {
 
 async function handleAddToCart(product) {
   await addToCart(product)
-  alert(`${product.title} sepete eklendi ✅`)
 }
 
 onMounted(async () => {
   if (!state.initialized) {
     await loadCart()
+  }
+
+  loading.value = true
+  error.value = ''
+
+  try {
+    products.value = await fetchProducts(24)
+  } catch (err) {
+    error.value = err.message || 'Ürünler yüklenemedi.'
+  } finally {
+    loading.value = false
   }
 })
 </script>
